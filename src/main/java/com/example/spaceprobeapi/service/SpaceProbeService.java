@@ -5,6 +5,7 @@ import com.example.spaceprobeapi.exception.InvalidPositionException;
 import com.example.spaceprobeapi.exception.InvalidValueException;
 import com.example.spaceprobeapi.exception.NotFoundValues;
 import com.example.spaceprobeapi.model.Planet;
+import com.example.spaceprobeapi.model.Position;
 import com.example.spaceprobeapi.model.SpaceProbe;
 import com.example.spaceprobeapi.repository.ISpaceProbeRepository;
 import com.example.spaceprobeapi.service.mapper.SpaceProbeMapper;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -69,25 +71,29 @@ public class SpaceProbeService implements ISpaceProbeService {
 
         SpaceProbe updatedSpaceProbe = SpaceProbeMapper.toUpdate(spaceProbe, commands);
         validadePlanetPosition(updatedSpaceProbe);
+
         spaceProbeRepository.save(updatedSpaceProbe);
 
         return SpaceProbeMapper.toDto(updatedSpaceProbe);
     }
 
     private void validadePlanetPosition(SpaceProbe spaceProbe) {
-        checkCoordinates(spaceProbe.getPosition().getX(), spaceProbe.getPosition().getX(), spaceProbe.getPlanet());
-        checkForCollision(spaceProbe.getPosition().getX(), spaceProbe.getPosition().getX(), spaceProbe.getPlanet());
+        checkCoordinates(spaceProbe.getPosition(), spaceProbe.getPlanet());
+        checkForCollision(spaceProbe);
     }
 
-    private void checkCoordinates(int x, int y, Planet planet) {
-        if (x < 0 || y < 0 || x >= planet.getX() || y >= planet.getY()) {
+    private void checkCoordinates(Position position, Planet planet) {
+        if (position.getX() < 0 || position.getY() < 0 || position.getX() >= planet.getX() || position.getY() >= planet.getY()) {
             throw new InvalidValueException("Coordenadas fora dos limites do planeta.");
         }
     }
 
-    private void checkForCollision(int x, int y, Planet planet) {
-        spaceProbeRepository.findByPositionXAndPositionYAndPlanet(x, y, planet).ifPresent(existingRover -> {
-            throw new InvalidPositionException("Colisão detectada na posição (" + x + ", " + y + ").");
+    private void checkForCollision(SpaceProbe spaceProbe) {
+        spaceProbeRepository.findByPositionXAndPositionYAndPlanet(spaceProbe.getPosition().getX(), spaceProbe.getPosition().getY(), spaceProbe.getPlanet())
+                .forEach(existingRover -> {
+                    if (!spaceProbe.getId().equals(existingRover.getId())) {
+                        throw new InvalidPositionException("Colisão detectada na posição (" + spaceProbe.getPosition().getX() + ", " + spaceProbe.getPosition().getY() + ").");
+                    }
         });
     }
 }
