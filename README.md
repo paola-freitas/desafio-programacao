@@ -1,4 +1,4 @@
-# 🌌 Desafio de Programação do Elo7
+# 🌌 Desafio de Programação
 ## 🎯 Objetivos
 <p align="justify">
 A API Space é projetada para gerenciar sondas em planetas. Ela oferece funcionalidades para criar planetas, implantar sondas espaciais e executar comandos de movimento para as sondas. A API garante que as sondas espaciais operem dentro das restrições de seus respectivos planetas e evitem colisões.
